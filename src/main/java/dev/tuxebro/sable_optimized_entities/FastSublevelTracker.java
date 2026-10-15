@@ -22,7 +22,7 @@ public class FastSublevelTracker {
         boolean isOnSublevel = fastCheckEntityIsOnSublevelArea(entity);
         if (!isOnSublevel) return pos;
 
-        SubLevel subLevel = getSubLevel(entity, pos);
+        SubLevel subLevel = getSubLevel(entity);
         if (subLevel == null) return pos;
 
         // TODO: dear self, make a temporary pos cache for sublevels
@@ -52,7 +52,7 @@ public class FastSublevelTracker {
     }
 
     @Nullable
-    public static SubLevel getSubLevel(Entity entity, Vec3 pos) {
+    public static SubLevel getSubLevel(Entity entity) {
         if (!(entity instanceof EntitySublevelAccessor accessor)) return null;
         return accessor.SOE$getSubLevel();
     }
