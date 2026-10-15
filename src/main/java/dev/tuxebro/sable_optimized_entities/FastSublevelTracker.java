@@ -19,7 +19,7 @@ public class FastSublevelTracker {
     public static Vec3 trackEntity(Entity entity) {
         final Vec3 pos = entity.position();
 
-        boolean isValid = checkEntityValidType(entity);
+        boolean isValid = checkEntityIsValidType(entity);
         if (!isValid) return pos;
 
         boolean isOnSublevel = fastCheckEntityIsOnSublevelArea(entity);
@@ -37,26 +37,26 @@ public class FastSublevelTracker {
                 .transformPosition(pos);
     }
 
-    public static boolean checkEntityValidType(Entity entity) {
+    public static boolean checkEntityIsValidType(Entity entity) {
         switch (entity) {
             case Mob ignored -> {
-                return true;
+                return false;
             }
             case Player ignored -> {
-                return true;
+                return false;
             }
             case ItemEntity ignored -> {
-                return true;
+                return false;
             }
             default -> {
-                return false;
+                return true;
             }
         }
     }
 
     @Nullable
     public static SubLevel getSubLevel(Entity entity, Vec3 pos) {
-        if (!(entity instanceof EntitySublevelUUIDExtension ext)) return null;
+        if (!(entity instanceof EntitySublevelExtension ext)) return null;
 
         WeakReference<SubLevel> subLevelRef = ext.SOE$getSubLevelRef();
 

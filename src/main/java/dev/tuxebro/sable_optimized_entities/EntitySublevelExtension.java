@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.ref.WeakReference;
 
 
-public interface EntitySublevelUUIDExtension {
+public interface EntitySublevelExtension {
     @Nullable
     WeakReference<SubLevel> SOE$getSubLevelRef();
 
