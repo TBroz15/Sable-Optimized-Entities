@@ -1,18 +1,16 @@
 package dev.tuxebro.sable_optimized_entities;
 
 import dev.ryanhcode.sable.Sable;
-import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
+import java.lang.ref.WeakReference;
 
 // i cant reload code inside of mixins, rare L hotswap
 public class FastSublevelTracker {
@@ -56,30 +54,25 @@ public class FastSublevelTracker {
         }
     }
 
-    // https://tenor.com/view/ishowspeed-translate-gif-12052961640477791272
     @Nullable
     public static SubLevel getSubLevel(Entity entity, Vec3 pos) {
-        Level level = entity.level();
-        SubLevelContainer container = SubLevelContainer.getContainer(level);
-        if (container == null) return null;
-
         if (!(entity instanceof EntitySublevelUUIDExtension ext)) return null;
 
-        SubLevel subLevel;
-        UUID sublevelUUID = ext.SOE$getSubLevelUUID();
+        WeakReference<SubLevel> subLevelRef = ext.SOE$getSubLevelRef();
 
-        if (sublevelUUID == null)
-            subLevel = Sable.HELPER.getContaining(level, pos);
-        else
-            subLevel = container.getSubLevel(sublevelUUID);
+        SubLevel subLevel = (subLevelRef != null)
+                ? subLevelRef.get()
+                : null;
 
-        if (subLevel == null) return null;
-        if (subLevel.isRemoved()) return null;
+        if (subLevel == null)
+            subLevel = Sable.HELPER.getContaining(entity.level(), pos);
 
-        if (sublevelUUID == null) {
-            sublevelUUID = subLevel.getUniqueId();
-            ext.SOE$setSubLevelUUID(sublevelUUID);
-        }
+        boolean sublevelExists
+                = subLevel != null && !subLevel.isRemoved();
+        if (!sublevelExists) return null;
+
+        if (subLevelRef == null)
+            ext.SOE$setSubLevel(subLevel);
 
         return subLevel;
     }

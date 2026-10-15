@@ -1,13 +1,15 @@
 package dev.tuxebro.sable_optimized_entities;
 
+import dev.ryanhcode.sable.sublevel.SubLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
+import java.lang.ref.WeakReference;
+
 
 public interface EntitySublevelUUIDExtension {
     @Nullable
-    UUID SOE$getSubLevelUUID();
+    WeakReference<SubLevel> SOE$getSubLevelRef();
 
-    void SOE$setSubLevelUUID(@NotNull UUID uuid);
+    void SOE$setSubLevel(@NotNull SubLevel subLevel);
 }
