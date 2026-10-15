@@ -4,6 +4,7 @@
   "package": "dev.tuxebro.sable_optimized_entities.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ServerEntityMixin",
     "TrackedEntityMixin"
   ],
   "client": [

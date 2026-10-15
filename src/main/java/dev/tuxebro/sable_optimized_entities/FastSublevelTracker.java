@@ -1,6 +1,7 @@
 package dev.tuxebro.sable_optimized_entities;
 
 import dev.ryanhcode.sable.Sable;
+import dev.ryanhcode.sable.api.sublevel.SubLevelContainer;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -9,72 +10,78 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import com.google.common.collect.MapMaker;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
-import java.util.concurrent.ConcurrentMap;
 
 // i cant reload code inside of mixins, rare L hotswap
-@EventBusSubscriber
 public class FastSublevelTracker {
     public static final int SUBLEVEL_AREA_CHUNK_DIST = 1_250_000;
-    public static final int MAX_CYCLE_CACHE_POS_CLEAR = 100;
-
-    private static int cyclesCachePosClear = 0;
-    private static final ConcurrentMap<UUID, Vec3> cachedPos = new MapMaker()
-            .weakValues()
-            .makeMap();
 
     public static Vec3 trackEntity(Entity entity) {
         final Vec3 pos = entity.position();
 
-        switch (entity) {
-            case Mob ignored -> {
-                return pos;
-            }
-            case Player ignored -> {
-                return pos;
-            }
-            case ItemEntity ignored -> {
-                return pos;
-            }
-            default -> {
-            }
-        }
+        boolean isValid = checkEntityValidType(entity);
+        if (!isValid) return pos;
 
         boolean isOnSublevel = fastCheckEntityIsOnSublevelArea(entity);
         if (!isOnSublevel) return pos;
 
-        Vec3 transformedPos = cachedPos.get(entity.getUUID());
-
-        boolean canReturnCachedPos = transformedPos != null
-                && cachedPos.containsKey(entity.getUUID());
-        if (canReturnCachedPos) return transformedPos;
-
-        final Level level = entity.level();
-        final SubLevel subLevel = Sable.HELPER.getContaining(level, pos);
-
+        SubLevel subLevel = getSubLevel(entity, pos);
         if (subLevel == null) return pos;
-        if (subLevel.isRemoved()) return pos;
 
-        transformedPos = subLevel
+        // TODO: dear self, make a temporary pos cache for sublevels
+        // TODO: that stays to still. invalidate it when it moves too fast.
+        // TODO: check aero's code (velocity sensor) to see how it gets sublevels' delta movement idk
+
+        return subLevel
                 .logicalPose()
                 .transformPosition(pos);
-
-        cachedPos.put(entity.getUUID(), transformedPos);
-        return transformedPos;
     }
 
-    @SubscribeEvent
-    public static void onTick(ServerTickEvent.Pre event) {
-        cyclesCachePosClear++;
-        if (cyclesCachePosClear < MAX_CYCLE_CACHE_POS_CLEAR) return;
+    public static boolean checkEntityValidType(Entity entity) {
+        switch (entity) {
+            case Mob ignored -> {
+                return true;
+            }
+            case Player ignored -> {
+                return true;
+            }
+            case ItemEntity ignored -> {
+                return true;
+            }
+            default -> {
+                return false;
+            }
+        }
+    }
 
-        cyclesCachePosClear = 0;
-        cachedPos.clear();
+    // https://tenor.com/view/ishowspeed-translate-gif-12052961640477791272
+    @Nullable
+    public static SubLevel getSubLevel(Entity entity, Vec3 pos) {
+        Level level = entity.level();
+        SubLevelContainer container = SubLevelContainer.getContainer(level);
+        if (container == null) return null;
+
+        if (!(entity instanceof EntitySublevelUUIDExtension ext)) return null;
+
+        SubLevel subLevel;
+        UUID sublevelUUID = ext.SOE$getSubLevelUUID();
+
+        if (sublevelUUID == null)
+            subLevel = Sable.HELPER.getContaining(level, pos);
+        else
+            subLevel = container.getSubLevel(sublevelUUID);
+
+        if (subLevel == null) return null;
+        if (subLevel.isRemoved()) return null;
+
+        if (sublevelUUID == null) {
+            sublevelUUID = subLevel.getUniqueId();
+            ext.SOE$setSubLevelUUID(sublevelUUID);
+        }
+
+        return subLevel;
     }
 
     public static boolean fastCheckEntityIsOnSublevelArea(Entity instance) {
