@@ -4,12 +4,9 @@ import dev.ryanhcode.sable.sublevel.SubLevel;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.ref.WeakReference;
-
-
-public interface EntitySublevelExtension {
+public interface EntitySublevelAccessor {
     @Nullable
-    WeakReference<SubLevel> SOE$getSubLevelRef();
+    SubLevel SOE$getSubLevel();
 
     void SOE$setSubLevel(@NotNull SubLevel subLevel);
 }

@@ -1,6 +1,5 @@
 package dev.tuxebro.sable_optimized_entities;
 
-import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.sublevel.SubLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -9,8 +8,6 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
-
-import java.lang.ref.WeakReference;
 
 // i cant reload code inside of mixins, rare L hotswap
 public class FastSublevelTracker {
@@ -56,25 +53,8 @@ public class FastSublevelTracker {
 
     @Nullable
     public static SubLevel getSubLevel(Entity entity, Vec3 pos) {
-        if (!(entity instanceof EntitySublevelExtension ext)) return null;
-
-        WeakReference<SubLevel> subLevelRef = ext.SOE$getSubLevelRef();
-
-        SubLevel subLevel = (subLevelRef != null)
-                ? subLevelRef.get()
-                : null;
-
-        if (subLevel == null)
-            subLevel = Sable.HELPER.getContaining(entity.level(), pos);
-
-        boolean sublevelExists
-                = subLevel != null && !subLevel.isRemoved();
-        if (!sublevelExists) return null;
-
-        if (subLevelRef == null)
-            ext.SOE$setSubLevel(subLevel);
-
-        return subLevel;
+        if (!(entity instanceof EntitySublevelAccessor accessor)) return null;
+        return accessor.SOE$getSubLevel();
     }
 
     public static boolean fastCheckEntityIsOnSublevelArea(Entity instance) {
