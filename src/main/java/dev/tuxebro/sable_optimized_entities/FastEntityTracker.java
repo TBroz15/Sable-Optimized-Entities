@@ -31,8 +31,8 @@ public class FastEntityTracker {
     public static Vec3 track(Entity entity) {
         final Vec3 pos = entity.position();
 
-        if (!isEntityValid(entity)) return pos;
         if (!isOnSublevel(entity)) return pos;
+        if (!isEntityValid(entity)) return pos;
 
         SubLevel subLevel = getSubLevel(entity);
         if (subLevel == null) return pos;
