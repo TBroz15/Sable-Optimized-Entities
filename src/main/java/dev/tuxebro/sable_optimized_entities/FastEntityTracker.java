@@ -30,7 +30,9 @@ public class FastEntityTracker {
         final int SUBLEVEL_AREA_CHUNK_DIST = 1_250_000;
 
         var chunkPos = instance.chunkPosition();
-        return Mth.abs(chunkPos.x) >= SUBLEVEL_AREA_CHUNK_DIST ||
-                Mth.abs(chunkPos.z) >= SUBLEVEL_AREA_CHUNK_DIST;
+        return chunkPos.x >= SUBLEVEL_AREA_CHUNK_DIST ||
+                chunkPos.z >= SUBLEVEL_AREA_CHUNK_DIST ||
+                -chunkPos.x >= SUBLEVEL_AREA_CHUNK_DIST ||
+                -chunkPos.z >= SUBLEVEL_AREA_CHUNK_DIST;
     }
 }
